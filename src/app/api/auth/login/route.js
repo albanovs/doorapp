@@ -30,12 +30,11 @@ export async function POST(req) {
         user: userData,
     });
 
-    // ✅ УСТАНАВЛИВАЕМ COOKIE
     response.cookies.set("token", user.apiKey, {
         httpOnly: true,
         path: "/",
         sameSite: "lax",
-        // secure: true, // включи на HTTPS
+        secure: true
     });
 
     return response;

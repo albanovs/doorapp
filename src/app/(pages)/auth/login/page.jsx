@@ -52,7 +52,6 @@ export default function LoginPage() {
             }
             localStorage.setItem("user", JSON.stringify(data.user));
             router.push("/profile");
-
         } catch {
             setError("Ошибка соединения с сервером");
         } finally {
