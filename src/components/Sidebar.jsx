@@ -26,6 +26,19 @@ export default function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
 
+    const handleLogout = async () => {
+        try {
+            await fetch("/api/auth/logout", {
+                method: "POST",
+            });
+
+            router.replace("/auth/login");
+        } catch (e) {
+            console.error("Ошибка выхода", e);
+        }
+    };
+
+
     const itemClass = (active) =>
         `
     flex items-center justify-center
@@ -62,7 +75,7 @@ export default function Sidebar() {
 
                 <div className="flex-1" />
 
-                <button className="w-12 h-12 flex items-center justify-center bg-[#C30000] rounded-[8px]  cursor-pointer transition-opacity duration-200 hover:opacity-70">
+                <button onClick={handleLogout} className="w-12 h-12 flex items-center justify-center bg-[#C30000] rounded-[8px]  cursor-pointer transition-opacity duration-200 hover:opacity-70">
                     <LogOut size={20} color="white" />
                 </button>
             </aside>
@@ -81,7 +94,7 @@ export default function Sidebar() {
                         <Bell size={22} />
                     </button>
 
-                    <button className="text-red-500 cursor-pointer transition-opacity duration-200 hover:opacity-70">
+                    <button onClick={handleLogout} className="text-red-500 cursor-pointer transition-opacity duration-200 hover:opacity-70">
                         <LogOut size={22} />
                     </button>
                 </div>

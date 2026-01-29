@@ -50,9 +50,8 @@ export default function LoginPage() {
                 setError(data.message || "Ошибка авторизации");
                 return;
             }
-
-            localStorage.setItem("apiKey", JSON.stringify(data.user));
-            router.push("/");
+            localStorage.setItem("user", JSON.stringify(data.user));
+            router.push("/profile");
 
         } catch {
             setError("Ошибка соединения с сервером");
@@ -79,9 +78,7 @@ export default function LoginPage() {
 
                 <h1 className="font-montserrat text-2xl text-center sm:text-3xl font-extrabold text-gray-700 mb-10 leading-snug">
                     Добро пожаловать в службу <br />
-                    <span className="text-red-600">
-                        сервиса PRO Монтаж
-                    </span>
+                    <span className="text-red-600">сервиса PRO Монтаж</span>
                 </h1>
 
                 <div className="max-w-sm w-full">

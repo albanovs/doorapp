@@ -1,21 +1,162 @@
 'use client';
 
-import Image from 'next/image'
-import React from 'react'
+import { useEffect, useState, useRef } from "react";
+import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
 
 export default function ProfilePage() {
-
-
     const router = useRouter();
+
+    const [user, setUser] = useState(null);
+    const [editData, setEditData] = useState(null);
+    const [editingField, setEditingField] = useState(null);
+
+    const saveTimeout = useRef(null); // debounce
+
+    // ===== Load from localStorage =====
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (!storedUser) {
+            router.push("/auth/login");
+            return;
+        }
+
+        const parsed = JSON.parse(storedUser);
+        setUser(parsed);
+        setEditData(parsed);
+    }, [router]);
+
+    if (!user || !editData) return null;
+
+    // ===== API SAVE =====
+    const syncWithDB = async (data) => {
+        try {
+            const res = await fetch("/api/user/update", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem("user", JSON.stringify(result.user));
+                setUser(result.user);
+                setEditData(result.user);
+            }
+        } catch (err) {
+            console.error("Sync error:", err);
+        }
+    };
+
+    // ===== Debounced Save =====
+    const autoSave = (newData) => {
+        if (saveTimeout.current) clearTimeout(saveTimeout.current);
+
+        saveTimeout.current = setTimeout(() => {
+            syncWithDB(newData);
+        }, 600); // 600ms debounce
+    };
+
+    // ===== Handlers =====
+    const handleChange = (field, value) => {
+        const newData = {
+            ...editData,
+            [field]: value
+        };
+        setEditData(newData);
+        autoSave(newData);
+    };
+
+    const handleAddressChange = (field, value) => {
+        const newData = {
+            ...editData,
+            adress: {
+                ...editData.adress,
+                [field]: value
+            }
+        };
+        setEditData(newData);
+        autoSave(newData);
+    };
+
+    const logout = () => {
+        localStorage.removeItem("user");
+        router.push("/auth/login");
+    };
+
+    const renderField = (label, field, value) => (
+        <div className="flex items-center justify-between rounded-xl bg-[#F5F5FA66] px-4 py-3">
+            <div className="w-full">
+                <p className="text-sm font-semibold text-gray-900">{label}</p>
+
+                {editingField === field ? (
+                    <input
+                        autoFocus
+                        value={value || ""}
+                        onChange={(e) => handleChange(field, e.target.value)}
+                        onBlur={() => setEditingField(null)}
+                        className="w-full bg-transparent border-b border-red-500 outline-none text-sm text-gray-700"
+                    />
+                ) : (
+                    <p
+                        onClick={() => setEditingField(field)}
+                        className="text-sm text-[#8181A5] cursor-pointer"
+                    >
+                        {value || "-"}
+                    </p>
+                )}
+            </div>
+
+            <button
+                onClick={() => setEditingField(field)}
+                className="ml-3 text-gray-400 hover:text-gray-600 transition"
+            >
+                <Image src="/pen.svg" alt="edit" width={14} height={14} />
+            </button>
+        </div>
+    );
+
+    const renderAddressField = (label, field, value) => (
+        <div className="flex items-center justify-between rounded-xl bg-[#F5F5FA66] px-4 py-3">
+            <div className="w-full">
+                <p className="text-sm font-semibold text-gray-900">{label}</p>
+
+                {editingField === `adress.${field}` ? (
+                    <input
+                        autoFocus
+                        value={value || ""}
+                        onChange={(e) => handleAddressChange(field, e.target.value)}
+                        onBlur={() => setEditingField(null)}
+                        className="w-full bg-transparent border-b border-red-500 outline-none text-sm text-gray-700"
+                    />
+                ) : (
+                    <p
+                        onClick={() => setEditingField(`adress.${field}`)}
+                        className="text-sm text-[#8181A5] cursor-pointer"
+                    >
+                        {value || "-"}
+                    </p>
+                )}
+            </div>
+
+            <button
+                onClick={() => setEditingField(`adress.${field}`)}
+                className="ml-3 text-gray-400 hover:text-gray-600 transition"
+            >
+                <Image src="/pen.svg" alt="edit" width={14} height={14} />
+            </button>
+        </div>
+    );
 
     return (
         <div>
-            <main className="">
+            <main>
                 <div className="mx-auto flex lg:flex-row flex-col w-full">
 
-                    <section className=" min-h-screen rounded-[12px] lg:rounded-none p-4 lg:w-96 bg-white">
+                    {/* LEFT */}
+                    <section className="min-h-screen rounded-[12px] lg:rounded-none p-4 lg:w-96 bg-white">
                         <div className="space-y-4">
 
                             <div className="mb-2 flex pt-10 py-5 items-center gap-3">
@@ -23,38 +164,17 @@ export default function ProfilePage() {
                                     className="flex h-20 w-20 text-3xl items-center justify-center rounded-[30px] text-white font-bold"
                                     style={{ background: 'linear-gradient(135deg, #F10000, #C30000)' }}
                                 >
-                                    A
+                                    {user.shopName?.[0]?.toUpperCase() || "U"}
                                 </div>
-                                <h2 className="text-lg text-[20px] font-semibold text-gray-900">
-                                    Академия дверей
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    {user.shopName}
                                 </h2>
                             </div>
 
-                            {[
-                                ["Название магазина", "Академия дверей"],
-                                ["ФИО менеджера", "Иванов Иван Иванович"],
-                                ["Контактный телефон", "+7 (999) 999-99-99"],
-                                ["Email", "ivan@gmail.com"],
-                                ["Пароль", "qwerty123"],
-                            ].map(([label, value]) => (
-                                <div
-                                    key={label}
-                                    className="flex items-center justify-between rounded-xl bg-[#F5F5FA66] px-4 py-3"
-                                >
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-900">
-                                            {label}
-                                        </p>
-                                        <p className="text-sm text-[#8181A5]">
-                                            {value}
-                                        </p>
-                                    </div>
-
-                                    <button className="text-gray-400 hover:text-gray-600 transition">
-                                        <Image src="/pen.svg" alt="edit" width={14} height={14} />
-                                    </button>
-                                </div>
-                            ))}
+                            {renderField("Название магазина", "shopName", editData.shopName)}
+                            {renderField("ФИО менеджера", "managerName", editData.managerName)}
+                            {renderField("Контактный телефон", "phone", editData.phone)}
+                            {renderField("Email", "email", editData.email)}
 
                         </div>
 
@@ -63,29 +183,9 @@ export default function ProfilePage() {
                                 Адрес магазина
                             </h3>
 
-                            {[
-                                ["Город", "г. Москва"],
-                                ["Улица", "ул. Складочная"],
-                                ["Дом", "25/20с1"],
-                            ].map(([label, value]) => (
-                                <div
-                                    key={label}
-                                    className="flex items-center justify-between rounded-xl bg-[#F5F5FA66] px-4 py-3"
-                                >
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-900">
-                                            {label}
-                                        </p>
-                                        <p className="text-sm text-[#8181A5]">
-                                            {value}
-                                        </p>
-                                    </div>
-
-                                    <button className="text-[#8181A5] hover:text-gray-600 transition">
-                                        <Image src="/pen.svg" alt="edit" width={14} height={14} />
-                                    </button>
-                                </div>
-                            ))}
+                            {renderAddressField("Город", "city", editData.adress?.city)}
+                            {renderAddressField("Улица", "street", editData.adress?.street)}
+                            {renderAddressField("Дом", "house", editData.adress?.house)}
                         </div>
                     </section>
 
@@ -148,7 +248,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex flex-col lg:flex-row gap-6 mt-6">
 
-                            <div className="relative bg-white w-full h-[300px] rounded-xl overflow-hidden p-6">
+                            <Link href="/create" className="relative bg-white w-full h-[300px] rounded-xl overflow-hidden p-6">
                                 <h3 className="text-lg font-semibold">
                                     Добавить новую заявку
                                 </h3>
@@ -161,7 +261,7 @@ export default function ProfilePage() {
                                     className="absolute bottom-0 right-0 object-contain"
                                     priority
                                 />
-                            </div>
+                            </Link>
 
                             <Link href="/orders" className="relative cursor-pointer bg-white w-full h-[300px] rounded-xl overflow-hidden p-6">
                                 <h3 className="text-lg font-semibold">
@@ -183,5 +283,5 @@ export default function ProfilePage() {
                 </div>
             </main>
         </div>
-    )
+    );
 }

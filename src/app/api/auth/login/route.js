@@ -5,8 +5,7 @@ import { connectDB } from "../../../../lib/db";
 export async function POST(req) {
     await connectDB();
 
-    const body = await req.json();
-    const { email, password } = body;
+    const { email, password } = await req.json();
 
     if (!email || !password) {
         return NextResponse.json(
@@ -26,9 +25,18 @@ export async function POST(req) {
 
     const { password: _password, __v, ...userData } = user.toObject();
 
-    return NextResponse.json({
+    const response = NextResponse.json({
         message: "Успешный вход",
-        apiKey: user.apiKey,
         user: userData,
     });
+
+    // ✅ УСТАНАВЛИВАЕМ COOKIE
+    response.cookies.set("token", user.apiKey, {
+        httpOnly: true,
+        path: "/",
+        sameSite: "lax",
+        // secure: true, // включи на HTTPS
+    });
+
+    return response;
 }

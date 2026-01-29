@@ -1,6 +1,5 @@
 import { Montserrat, Lato } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 
 const montserrat = Montserrat({
   subsets: ["cyrillic"],
@@ -22,11 +21,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ru">
-      <body className={`${montserrat.variable} ${lato.variable} bg-[#F7F7F7] antialiased font-lato`}>
-        <div className="min-h-screen">
-          <Sidebar />
-          <main className="lg:ml-21  p-2 my-20 lg:p-0 lg:my-0">{children}</main>
-        </div>
+      <body className={`${montserrat.variable} ${lato.variable}  antialiased font-lato`}>
+        {children}
       </body>
     </html>
   );
