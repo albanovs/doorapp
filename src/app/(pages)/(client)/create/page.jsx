@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, User, Phone } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOrders } from "../../../store/ordersSlice";
 
 export default function CreatePage() {
     const router = useRouter();
     const [user, setUser] = useState(null);
+    const dispatch = useDispatch();
     const [editingField, setEditingField] = useState(null);
     const [period, setPeriod] = useState({ from: null, to: null });
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -22,6 +25,7 @@ export default function CreatePage() {
         comment: "",
     });
     const [modalOpen, setModalOpen] = useState(false);
+    const [creating, setCreating] = useState(false);
 
     useEffect(() => {
         const stored = localStorage.getItem("user");
@@ -39,10 +43,13 @@ export default function CreatePage() {
     }, []);
 
     const createOrder = async () => {
+        if (creating) return;
         if (!period.from || !period.to) {
             alert("Выберите период выполнения");
             return;
         }
+
+        setCreating(true);
 
         const payload = {
             shopName: user.shopName,
@@ -60,23 +67,30 @@ export default function CreatePage() {
             periodDate: { from: period.from, to: period.to },
             clientFile: {},
             managerFile: {},
-            apiKey: user?.apiKey
+            apiKey: user?.apiKey,
         };
 
-        const res = await fetch("/api/orders/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
+        try {
+            const res = await fetch("/api/orders/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
 
-        if (!res.ok) {
-            alert("Ошибка создания заявки");
-            return;
+            if (!res.ok) {
+                alert("Ошибка создания заявки");
+                setCreating(false);
+                return;
+            }
+            dispatch(fetchOrders())
+            setModalOpen(true);
+            setForm(prev => ({ ...prev, comment: "" }));
+            setPeriod({ from: null, to: null });
+        } catch (e) {
+            alert("Ошибка сети");
+        } finally {
+            setCreating(false);
         }
-
-        setModalOpen(true);
-        setForm(prev => ({ ...prev, comment: "" }));
-        setPeriod({ from: null, to: null });
     };
 
     const handleDayClick = (date) => {
@@ -99,7 +113,7 @@ export default function CreatePage() {
 
     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
     const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-    const startDay = startOfMonth.getDay() === 0 ? 6 : startOfMonth.getDay() - 1; // с понедельника
+    const startDay = startOfMonth.getDay() === 0 ? 6 : startOfMonth.getDay() - 1;
     const daysInMonth = endOfMonth.getDate();
     const blanks = Array.from({ length: startDay });
 
@@ -109,7 +123,10 @@ export default function CreatePage() {
     return (
         <div className="lg:p-5 relative">
             <div className="mb-5">
-                <button onClick={() => router.push("/applications")} className="flex cursor-pointer items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
+                <button
+                    onClick={() => router.push("/applications")}
+                    className="flex cursor-pointer items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+                >
                     <ArrowLeft size={16} /> К заявкам
                 </button>
             </div>
@@ -209,8 +226,7 @@ export default function CreatePage() {
                                         onClick={() => handleDayClick(date)}
                                         className={`h-9 flex items-center justify-center rounded-lg cursor-pointer
                                             ${active ? "bg-green-400 text-white" : "bg-gray-100 text-gray-700"}
-                                            ${isFrom || isTo ? "border-2 border-red-600" : ""}
-                                        `}
+                                            ${isFrom || isTo ? "border-2 border-red-600" : ""}`}
                                     >
                                         {i + 1}
                                     </div>
@@ -228,9 +244,14 @@ export default function CreatePage() {
             <div className="mt-6 flex justify-center">
                 <button
                     onClick={createOrder}
-                    className="rounded-[8px] bg-[#C30000] px-8 py-3 text-sm font-medium cursor-pointer text-white hover:bg-red-600"
+                    disabled={creating}
+                    className="relative flex items-center justify-center rounded-[8px] bg-[#C30000] px-8 py-3 text-sm font-medium text-white hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Создать заявку
+                    {creating ? (
+                        <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    ) : (
+                        "Создать заявку"
+                    )}
                 </button>
             </div>
 
