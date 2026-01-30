@@ -31,7 +31,7 @@ export default function Sidebar() {
             await fetch("/api/auth/logout", {
                 method: "POST",
             });
-
+            localStorage.removeItem("user");
             router.replace("/auth/login");
         } catch (e) {
             console.error("Ошибка выхода", e);
