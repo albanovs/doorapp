@@ -1,8 +1,36 @@
-import Image from 'next/image'
-import React from 'react'
-import { Search } from 'lucide-react'
+"use client";
+
+import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchOrders } from '../../../store/ordersSlice';
+import { useRouter } from 'next/navigation';
 
 export default function SearchPage() {
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const { list: orders, loading, loaded } = useSelector((state) => state.orders);
+
+    const [query, setQuery] = useState('');
+    const [filteredOrders, setFilteredOrders] = useState([]);
+
+    useEffect(() => {
+        if (!loaded) dispatch(fetchOrders());
+    }, [dispatch, loaded]);
+
+    useEffect(() => {
+        if (!orders) return;
+        const q = query.trim().toLowerCase();
+        if (!q) {
+            setFilteredOrders(orders);
+        } else {
+            setFilteredOrders(
+                orders.filter(o => o.orderName?.toLowerCase().includes(q) || o.orderType?.toLowerCase().includes(q))
+            );
+        }
+    }, [query, orders]);
+
     return (
         <div>
             <section className="w-full mb-5 lg:mb-0 lg:p-6 p-2">
@@ -15,7 +43,9 @@ export default function SearchPage() {
                     <div className="relative mb-6 shrink-0">
                         <input
                             type="text"
-                            placeholder="АД00521250"
+                            placeholder="Введите наименование заявки или тип"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
                             className="
                                 w-full h-[60px] 
                                 bg-[#F5F5FA66]
@@ -32,46 +62,39 @@ export default function SearchPage() {
                         </span>
                     </div>
 
-                    {/* Список */}
-                    <div className="flex-1 px-6 overflow-y-auto custom-scroll space-y-5 ">
-                        {[
-                            ["АД00521250", "Ожидает звонок", "#61DC81"],
-                        ].map(([id, status, color]) => (
-                            <div key={id} className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <Image
-                                        src="/icon.png"
-                                        alt="logo"
-                                        width={40}
-                                        height={40}
-                                    />
+                    <div className="flex-1 px-6 overflow-y-auto custom-scroll space-y-5">
+                        {loading ? (
+                            <p className="text-gray-400 text-sm text-center mt-10">Загрузка...</p>
+                        ) : filteredOrders.length === 0 ? (
+                            <p className="text-gray-400 text-sm text-center mt-10">Заявки не найдены</p>
+                        ) : (
+                            filteredOrders.map(order => (
+                                <div
+                                    key={order._id}
+                                    className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg"
+                                    onClick={() => router.push(`/applications/${order._id}`)}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <Image src="/icon.png" alt="logo" width={40} height={40} />
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">{order.orderName}</p>
+                                            <p className="text-xs text-[#1C1D21]">{order.orderType}</p>
+                                        </div>
+                                    </div>
 
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-900">
-                                            {id}
-                                        </p>
-                                        <p className="text-xs text-[#1C1D21]">
-                                            Монтаж дверей
+                                    <div className="text-right">
+                                        <p className="text-xs text-[#1C1D21]">{new Date(order.orderDate).toLocaleDateString()}</p>
+                                        <p className="text-xs font-medium" style={{ color: order.status === 'Завершен' ? '#9ADC61' : order.status === 'Ожидает услугу' ? '#61D0DC' : '#61DC81' }}>
+                                            {order.status}
                                         </p>
                                     </div>
                                 </div>
-
-                                <div className="text-right">
-                                    <p className="text-xs text-[#1C1D21]">
-                                        25.12.2025
-                                    </p>
-                                    <p
-                                        className={`text-xs`} style={{ color: color }}
-                                    >
-                                        {status}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
 
                 </div>
-            </section >
-        </div >
-    )
+            </section>
+        </div>
+    );
 }

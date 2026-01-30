@@ -1,5 +1,6 @@
 import { Montserrat, Lato } from "next/font/google";
 import "./globals.css";
+import Providers from "./store/Providers";
 
 const montserrat = Montserrat({
   subsets: ["cyrillic"],
@@ -22,7 +23,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ru">
       <body className={`${montserrat.variable} ${lato.variable}  antialiased font-lato`}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -35,7 +35,6 @@ export async function POST(req) {
         path: "/",
         sameSite: "lax",
         secure: true,
-        domain: 'doorapp-xi.vercel.app',
     });
 
     return response;
