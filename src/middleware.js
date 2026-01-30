@@ -4,42 +4,35 @@ export function middleware(request) {
     const token = request.cookies.get("token")?.value;
     const { pathname } = request.nextUrl;
 
-    const authRoutes = [
+    const publicRoutes = [
         "/auth/login",
         "/auth/register",
     ];
 
-    // пропускаем API
-    if (pathname.startsWith("/api")) {
+    // API auth
+    if (pathname.startsWith("/api/auth")) {
         return NextResponse.next();
     }
 
-    // ❌ не авторизован
-    if (!token) {
-        if (authRoutes.includes(pathname)) {
-            return NextResponse.next();
-        }
-
+    // 🔐 страницы
+    if (!token && !publicRoutes.includes(pathname)) {
         return NextResponse.redirect(
             new URL("/auth/login", request.url)
         );
     }
 
-    // ✅ авторизован
-    if (token) {
-        // запрещаем auth-страницы и /
-        if (authRoutes.includes(pathname) || pathname === "/") {
-            return NextResponse.redirect(
-                new URL("/profile", request.url)
-            );
-        }
-
-        return NextResponse.next();
+    if (token && publicRoutes.includes(pathname)) {
+        return NextResponse.redirect(
+            new URL("/", request.url)
+        );
     }
+
+    return NextResponse.next();
 }
 
 export const config = {
     matcher: [
-        "/((?!_next|api|.*\\..*).*)",
+        // ❗ только страницы, без файлов
+        "/((?!.*\\.(?:png|jpg|jpeg|svg|webp|ico|css|js|map|woff|woff2|ttf|eot)$|_next|api).*)",
     ],
 };

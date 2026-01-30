@@ -124,7 +124,7 @@ export default function DetailPage({ params }) {
 
                 <div className="flex flex-col gap-5 lg:col-span-2 h-full">
                     <div className="flex flex-col gap-5 flex-[0.6]">
-                        <div className="w-full flex gap-5 flex-1">
+                        <div className="w-full flex lg:flex-row flex-col gap-5 flex-1">
                             <div className="bg-white flex-1 rounded-xl p-5 space-y-6">
                                 <Person
                                     title="Менеджер"
@@ -189,7 +189,7 @@ export default function DetailPage({ params }) {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl w-full flex-[0.4] flex items-center justify-center text-sm text-gray-400">
+                    <div className="bg-white p-10 lg:p-0 text-center rounded-xl w-full flex-[0.4] flex items-center justify-center text-sm text-gray-400">
                         Добавьте файл загрузив по клику или перетащив его в область
                     </div>
                 </div>
