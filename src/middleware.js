@@ -4,26 +4,61 @@ export function middleware(request) {
     const token = request.cookies.get("token")?.value;
     const { pathname } = request.nextUrl;
 
-    const publicRoutes = [
-        "/auth/login",
-        "/auth/register",
-    ];
+    const isAuthPage =
+        pathname.startsWith("/auth/login") ||
+        pathname.startsWith("/auth/register");
 
-    // API auth
     if (pathname.startsWith("/api/auth")) {
         return NextResponse.next();
     }
 
-    // 🔐 страницы
-    if (!token && !publicRoutes.includes(pathname)) {
+    if (!token) {
+        if (!isAuthPage) {
+            return NextResponse.redirect(
+                new URL("/auth/login", request.url)
+            );
+        }
+        return NextResponse.next();
+    }
+
+    if (pathname === "/") {
         return NextResponse.redirect(
             new URL("/auth/login", request.url)
         );
     }
 
-    if (token && publicRoutes.includes(pathname)) {
+
+    let user;
+    try {
+        user = JSON.parse(token);
+    } catch {
         return NextResponse.redirect(
-            new URL("/", request.url)
+            new URL("/auth/login", request.url)
+        );
+    }
+
+    const isAdminRoute = pathname.startsWith("/admin");
+    const isUserRoute = pathname.startsWith("/profile");
+
+    if (user.admin) {
+        if (!isAdminRoute) {
+            return NextResponse.redirect(
+                new URL("/admin/profile", request.url)
+            );
+        }
+    }
+
+    if (!user.admin) {
+        if (isAdminRoute) {
+            return NextResponse.redirect(
+                new URL("/profile", request.url)
+            );
+        }
+    }
+
+    if (isAuthPage) {
+        return NextResponse.redirect(
+            new URL(user.admin ? "/admin/profile" : "/profile", request.url)
         );
     }
 
@@ -32,7 +67,6 @@ export function middleware(request) {
 
 export const config = {
     matcher: [
-        // ❗ только страницы, без файлов
         "/((?!.*\\.(?:png|jpg|jpeg|svg|webp|ico|css|js|map|woff|woff2|ttf|eot)$|_next|api).*)",
     ],
 };

@@ -28,10 +28,7 @@ export default function SearchPage() {
             setFilteredOrders(orders);
         } else {
             setFilteredOrders(
-                orders.filter(o =>
-                    o.orderName?.toLowerCase().includes(q) ||
-                    o.orderType?.toLowerCase().includes(q)
-                )
+                orders.filter(o => o.orderName?.toLowerCase().includes(q) || o.orderType?.toLowerCase().includes(q))
             );
         }
     }, [query, orders]);
@@ -74,7 +71,7 @@ export default function SearchPage() {
                                     <div className="flex items-center gap-4">
                                         <Skeleton circle width={40} height={40} />
                                         <div>
-                                            <Skeleton width={200} height={12} />
+                                            <Skeleton width={180} height={12} />
                                             <Skeleton width={120} height={12} />
                                         </div>
                                     </div>
@@ -91,7 +88,7 @@ export default function SearchPage() {
                                 <div
                                     key={order._id}
                                     className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition"
-                                    onClick={() => router.push(`/applications/${order._id}`)}
+                                    onClick={() => router.push(`/admin/applications/${order._id}`)}
                                 >
                                     <div className="flex items-center gap-4">
                                         <Image src="/icon.png" alt="logo" width={40} height={40} />

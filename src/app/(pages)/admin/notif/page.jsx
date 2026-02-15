@@ -13,23 +13,14 @@ export default function NotifPage() {
     const router = useRouter();
 
     const fetchNotifications = async () => {
-        setLoading(true);
         try {
-            const stored = localStorage.getItem("user");
-            if (!stored) return;
-
-            const user = JSON.parse(stored);
-
-            const res = await fetch(`/api/notifications/?apikey=${user.apiKey}`);
+            const res = await fetch("/api/notifications");
             const data = await res.json();
 
             if (res.ok) {
-                setNotifications(data.notifications.filter((n) => !n.isRead));
-            } else {
-                toast.error("Ошибка загрузки уведомлений");
+                setNotifications(data.notifications.filter((n) => !n.isReadAdmin));
             }
         } catch (error) {
-            console.error("Ошибка загрузки уведомлений:", error);
             toast.error("Ошибка загрузки уведомлений");
         } finally {
             setLoading(false);
@@ -42,7 +33,7 @@ export default function NotifPage() {
 
     const handleClick = async (notif) => {
         try {
-            await fetch("/api/notifications/read", {
+            await fetch("/api/notifications/readadmin", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: notif._id }),
@@ -52,7 +43,7 @@ export default function NotifPage() {
                 prev.filter((n) => n._id !== notif._id)
             );
 
-            router.push(`/applications/${notif.orderId}`);
+            router.push(`/admin/applications/${notif.orderId}`);
         } catch (error) {
             toast.error("Ошибка перехода");
         }

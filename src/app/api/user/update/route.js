@@ -23,6 +23,7 @@ export async function PUT(req) {
                 managerName: updateData.managerName,
                 phone: updateData.phone,
                 email: updateData.email,
+                password: updateData.password,
                 adress: {
                     city: updateData.adress?.city || "",
                     street: updateData.adress?.street || "",

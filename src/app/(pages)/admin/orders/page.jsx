@@ -1,16 +1,53 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from 'react'
 import toast from "react-hot-toast";
 
 export default function OrderPage() {
+
+    const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false);
+
+    const handleUploadClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            setLoading(true);
+            const toastId = toast.loading("Загрузка прайс-листа...");
+
+            const res = await fetch("/api/price/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json();
+
+            toast.dismiss(toastId);
+
+            if (res.ok) {
+                toast.success("Прайс успешно загружен ✅");
+            } else {
+                toast.error(data.message || "Ошибка загрузки");
+            }
+        } catch (error) {
+            toast.error("Ошибка сервера");
+        } finally {
+            setLoading(false);
+            e.target.value = "";
+        }
+    };
 
     const handleDownload = async () => {
         try {
-            setLoading(true);
-
-            const toastId = toast.loading("Поиск прайс-листа...");
+            const toastId = toast.loading("Поиск прайса...");
 
             const res = await fetch("/api/price/current");
             const data = await res.json();
@@ -24,22 +61,34 @@ export default function OrderPage() {
                 toast.error("Прайс не найден");
             }
         } catch (error) {
-            toast.error("Ошибка сервера");
-        } finally {
-            setLoading(false);
+            toast.error("Ошибка загрузки");
         }
     };
 
     return (
-        <div className="w-full mb-5 lg:mb-0 lg:p-6 p-2">
-            <button
-                onClick={handleDownload}
-                disabled={loading}
-                className="rounded-[8px] cursor-pointer border-2 text-[#C30000] border-[#C30000] px-6 py-3 text-sm font-semibold hover:bg-[#C30000] hover:text-white transition disabled:opacity-50"
-            >
-                {loading ? "Загрузка..." : "Скачать прайс лист"}
-            </button>
+        <div className='w-full mb-5 lg:mb-0  lg:p-6 p-2'>
+            <div className="flex lg:flex-row flex-col gap-2">
+                <button
+                    onClick={handleDownload}
+                    className="rounded-[8px] cursor-pointer border-2 text-[#C30000] border-[#C30000] px-6 py-3 text-sm font-semibold hover:bg-[#C30000] hover:text-white transition"
+                >
+                    Скачать прайс лист
+                </button>
 
+                <button
+                    onClick={handleUploadClick}
+                    className="rounded-[8px] cursor-pointer border-2 text-white bg-[#C30000] border-[#C30000] px-6 py-3 text-sm font-semibold hover:text-[#C30000] hover:bg-white transition"
+                >
+                    Загрузить новый прайс лист
+                </button>
+
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                />
+            </div>
             <div className="w-full overflow-hidden mt-5 rounded-md border border-gray-200 bg-white">
                 <table className="w-full text-sm">
                     <tbody>
@@ -78,6 +127,7 @@ export default function OrderPage() {
                     </tbody>
                 </table>
             </div>
+
         </div>
-    );
+    )
 }

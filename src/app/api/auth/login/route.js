@@ -30,12 +30,21 @@ export async function POST(req) {
         user: userData,
     });
 
-    response.cookies.set("token", user.apiKey, {
-        httpOnly: true,
-        path: "/",
-        sameSite: "lax",
-        secure: true,
-    });
+    response.cookies.set(
+        "token",
+        JSON.stringify({
+            id: user._id,
+            admin: user.admin,
+            apiKey: user.apiKey,
+        }),
+        {
+            httpOnly: true,
+            path: "/",
+            sameSite: "lax",
+            secure: true,
+        }
+    );
+
 
     return response;
 }

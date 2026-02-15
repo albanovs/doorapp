@@ -11,6 +11,37 @@ export default function DetailPage({ params }) {
     const router = useRouter();
     const dispatch = useDispatch();
 
+    const [newFiles, setNewFiles] = useState([]);
+
+    const handleFileAdd = async (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+
+        const formData = new FormData();
+        formData.append("_id", order._id);
+
+        files.forEach((file) => formData.append("clientFile", file));
+
+        try {
+            const res = await fetch("/api/orders/update", {
+                method: "PUT",
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error("Ошибка загрузки файлов");
+
+            const data = await res.json();
+
+            setNewFiles((prev) => [...prev, ...files]);
+
+            dispatch(fetchOrders());
+        } catch (err) {
+            console.error(err);
+            alert("Не удалось загрузить файлы");
+        }
+    };
+
+
     const { list: orders, loading, loaded } = useSelector(
         (state) => state.orders
     );
@@ -77,7 +108,7 @@ export default function DetailPage({ params }) {
 
                     <div className="bg-white rounded-xl w-full flex-[0.4] p-5 space-y-5">
                         <div>
-                            <p className="font-medium text-sm mb-2">
+                            <p className="text-[#1C1D21] font-semibold text-[20px] text-sm mb-2">
                                 Файлы, прикрепленные менеджером
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -85,7 +116,7 @@ export default function DetailPage({ params }) {
                                     order.managerFiles.map((f, i) => (
                                         <span
                                             key={i}
-                                            className="bg-gray-100 px-3 py-1 rounded-md text-xs"
+                                            className="bg-[#F5F5FA66] px-3 py-3 text-[#8181A5]  px-3 py-1 rounded-md text-xs"
                                         >
                                             {f}
                                         </span>
@@ -99,17 +130,19 @@ export default function DetailPage({ params }) {
                         </div>
 
                         <div>
-                            <p className="font-medium text-sm mb-2">
+                            <p className="text-[#1C1D21] font-semibold text-[20px] text-sm mb-2">
                                 Файлы, прикрепленные магазином
                             </p>
                             <div className="flex flex-wrap gap-2">
-                                {order.shopFiles?.length ? (
-                                    order.shopFiles.map((f, i) => (
+                                {order.clientFile?.length ? (
+                                    order.clientFile.map((f, i) => (
                                         <span
                                             key={i}
-                                            className="bg-gray-100 px-3 py-1 rounded-md text-xs"
+                                            className="bg-[#F5F5FA66] px-3 py-3 text-[#8181A5] rounded-md text-xs flex items-center gap-2"
                                         >
-                                            {f}
+                                            <a href={f.url} download target="_blank">
+                                                {f.name}
+                                            </a>
                                         </span>
                                     ))
                                 ) : (
@@ -167,12 +200,15 @@ export default function DetailPage({ params }) {
                                         Дата назначения работ
                                     </p>
                                     <p
-                                        className={`text-xs ${order?.assignDate ? 'font-medium' : 'text-gray-400'
+                                        className={`text-xs ${order?.workDate ? 'font-medium' : 'text-gray-400'
                                             }`}
                                     >
-                                        {order?.assignDate
-                                            ? new Date(order.assignDate).toLocaleDateString()
-                                            : 'Дата ещё не назначена'}
+                                        {order?.workDate
+                                            ? new Date(order.workDate).toLocaleString("ru-RU", {
+                                                dateStyle: "short",
+                                                timeStyle: "short",
+                                            })
+                                            : "Дата ещё не назначена"}
                                     </p>
                                 </div>
                             </div>
@@ -189,9 +225,22 @@ export default function DetailPage({ params }) {
                         </div>
                     </div>
 
-                    <div className="bg-white p-10 lg:p-0 text-center rounded-xl w-full flex-[0.4] flex items-center justify-center text-sm text-gray-400">
-                        Добавьте файл загрузив по клику или перетащив его в область
+                    <div className="bg-white p-5 rounded-xl w-full flex-[0.4] flex flex-col items-center justify-center text-sm text-gray-400 space-y-3">
+                        <label
+                            htmlFor="fileInput"
+                            className="cursor-pointer w-full h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl hover:border-gray-500 transition-colors"
+                        >
+                            <p>Нажмите или перетащите файлы сюда</p>
+                            <input
+                                id="fileInput"
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={handleFileAdd}
+                            />
+                        </label>
                     </div>
+
                 </div>
             </div>
         </div >
@@ -207,12 +256,15 @@ function Block({ label, value }) {
     );
 }
 
-function Person({ title, _tabs, name, phone }) {
+function Person({ title, name, phone }) {
     return (
-        <div>
-            <p className="text-xs text-gray-400">{title}</p>
-            <p className="text-sm font-medium ">{name}</p>
-            <p className="text-xs text-gray-400">{phone}</p>
+        <div className="flex items-center justify-between">
+            <p className="text-md flex-1 text-[#1C1D21] font-semibold">{title}</p>
+            <div className="flex flex-1 flex-col gap-3">
+                <p className="text-xs font-medium text-gray-400 flex justify-between"><User2 color="#8181A5" size={18} /> {name ? name : "______________________________"}</p>
+                <p className="text-xs text-gray-400 flex justify-between"><Phone color="#8181A5" size={18} /> {phone ? phone : "______________________________"}</p>
+            </div>
         </div>
     );
 }
+

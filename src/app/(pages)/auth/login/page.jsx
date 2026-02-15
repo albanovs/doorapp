@@ -52,7 +52,11 @@ export default function LoginPage() {
                 return;
             }
             localStorage.setItem("user", JSON.stringify(data.user));
-            router.push("/profile");
+            if (data.user.admin) {
+                router.push("/admin/profile");
+            } else {
+                router.push("/profile");
+            }
         } catch {
             setError("Ошибка соединения с сервером");
         } finally {

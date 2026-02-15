@@ -1,4 +1,4 @@
-import Sidebar from "../../../components/Sidebar";
+import Sidebar from "../../../components/SidebarAdmin";
 import { Toaster } from "react-hot-toast";
 
 export default function AppLayout({ children }) {

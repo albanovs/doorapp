@@ -7,7 +7,8 @@ const UserSchema = new Schema(
         phone: { type: String, required: true },
         email: { type: String, unique: true, required: true },
         password: { type: String, required: true },
-        apiKey: { type: String, unique: true, required: true },
+        apiKey: { type: String, unique: true },
+        admin: { type: Boolean, default: false },
         adress: {
             city: { type: String },
             street: { type: String },

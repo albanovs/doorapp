@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,6 +10,8 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { fetchOrders } from "../../../store/ordersSlice";
 
 export default function ProfilePage() {
+
+
     const router = useRouter();
     const dispatch = useDispatch();
     const { list: orders, loading, loaded } = useSelector((state) => state.orders);

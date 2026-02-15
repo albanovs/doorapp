@@ -8,7 +8,19 @@ export const fetchOrders = createAsyncThunk(
             if (!stored) return [];
 
             const user = JSON.parse(stored);
-            if (!user?.apiKey) return [];
+            if (user?.apiKey) {
+                const res = await fetch(`/api/orders/get?apikey=${user.apiKey}`);
+                if (!res.ok) throw new Error("Ошибка загрузки");
+
+                const data = await res.json();
+                return data.orders || [];
+            } else {
+                const res = await fetch(`/api/orders/get`);
+                if (!res.ok) throw new Error("Ошибка загрузки");
+
+                const data = await res.json();
+                return data.orders || [];
+            }
 
             const res = await fetch(`/api/orders/get?apikey=${user.apiKey}`);
             if (!res.ok) throw new Error("Ошибка загрузки");
