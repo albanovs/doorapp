@@ -113,6 +113,28 @@ export default function Sidebar() {
                     </button>
                 </div>
             </header>
+            <nav className="fixed bottom-0 left-0 right-0 z-50 h-[72px] bg-white border-t border-t-[#ccc] flex md:hidden justify-around items-center">
+                {nav
+                    .filter(({ href, icon }) => icon !== Bell)
+                    .map(({ href, icon: Icon }) => {
+                        const active = pathname === href;
+
+                        return (
+                            <Link
+                                key={href}
+                                href={href}
+                                className={`
+                        flex flex-col items-center justify-center
+                        transition-colors transition-transform duration-200 ease-out
+                        ${active ? "text-red-500 scale-105" : "text-gray-400 hover:text-red-500"}
+                        active:scale-95
+                      `}
+                            >
+                                <Icon size={22} />
+                            </Link>
+                        );
+                    })}
+            </nav>
         </>
     );
 }
