@@ -38,7 +38,6 @@ export function middleware(request) {
     }
 
     const isAdminRoute = pathname.startsWith("/admin");
-    const isUserRoute = pathname.startsWith("/profile");
 
     if (user.admin) {
         if (!isAdminRoute) {
